@@ -1,0 +1,43 @@
+General Dev Notes: 
+
+Folder Struct and what each piece does: 
+
+lumascan/
+├── frontend/                  # Next.js + Tailwind CSS app
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/            # Next.js routes
+│   │   ├── styles/
+│   │   ├── lib/              # supabase client, utils
+│   │   └── hooks/
+│   ├── .env.local.example
+│   ├── tailwind.config.js
+│   ├── postcss.config.js
+│   ├── next.config.js
+│   └── package.json
+│
+├── backend/                  # Flask REST API
+│   ├── app/
+│   │   ├── __init__.py       # Create Flask app here
+│   │   ├── routes/
+│   │   │   ├── auth.py
+│   │   │   ├── upload.py
+│   │   │   └── scan.py
+│   │   ├── services/         # PDF parsing, AI, similarity
+│   │   │   ├── parser.py
+│   │   │   ├── embeddings.py
+│   │   │   └── match.py
+│   │   ├── utils/
+│   │   │   └── jwt.py        # Supabase JWT verification
+│   │   └── config.py
+│   ├── requirements.txt
+│   ├── .env.example
+│   └── run.py
+│
+├── .gitignore
+├── README.md
+├── LICENSE
+└── .github/
+    └── ISSUE_TEMPLATE/
+        └── feature_request.md

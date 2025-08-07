@@ -1,0 +1,45 @@
+# -------------------------------
+# Node.js / Next.js (Frontend)
+# -------------------------------
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+frontend/.env.*.local
+frontend/.DS_Store
+
+# -------------------------------
+# Python / Flask (Backend)
+# -------------------------------
+backend/venv/
+backend/__pycache__/
+backend/.env
+backend/.DS_Store
+
+# -------------------------------
+# Global
+# -------------------------------
+*.pyc
+*.pyo
+*.pyd
+*.log
+.env
+.env.local
+.env.example
+*.sqlite3
+*.db
+*.bak
+.DS_Store
+Thumbs.db
+
+# -------------------------------
+# OS / Editor / IDE Junk
+# -------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# -------------------------------
+# Python cache
+# -------------------------------
+**/__pycache__/
