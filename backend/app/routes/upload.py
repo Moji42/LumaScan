@@ -1,5 +1,7 @@
+# backend/app/routes/upload.py
 from flask import Blueprint, request, jsonify 
 from app.services.parser import parse_pdf_text
+from app.services.gemini import extract_skills
 
 upload_bp = Blueprint('upload', __name__)
 
@@ -11,6 +13,10 @@ def upload_resume():
     file = request.files['resume']
     try:
         text = parse_pdf_text(file)
-        return jsonify({"resume_text": text}), 200
+        skills = extract_skills(text)  # Extract skills from the resume text
+        return jsonify({
+            "resume_text": text,
+            "skills": skills  # Include skills in the response
+        }), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 500 

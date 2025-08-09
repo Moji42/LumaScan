@@ -41,3 +41,23 @@ lumascan/
 └── .github/
     └── ISSUE_TEMPLATE/
         └── feature_request.md
+
+
+Able to find match rate every single time and it will be exact
+able to seek out missing skills
+able to state misc or extra skills
+will create new resume with job desc 
+will create CV as well
+
+
+curl -X POST http://localhost:5000/upload \
+  -F "resume=@Sample_Resume.pdf" \
+  -H "Content-Type: multipart/form-data"
+
+curl -X POST http://localhost:5000/match \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resume_text": "Experienced in Python, Flask, and MongoDB. AWS Certified Developer.",
+    "job_desc": "Seeking full-stack developer with 3+ years of Python and AWS experience. Strong debugging skills required.",
+    "industry": "tech"
+  }'
