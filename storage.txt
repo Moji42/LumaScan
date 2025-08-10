@@ -49,15 +49,77 @@ able to state misc or extra skills
 will create new resume with job desc 
 will create CV as well
 
-
-curl -X POST http://localhost:5000/upload \
+UPLOAD_RESPONSE=$(curl -s -X POST http://localhost:5000/upload \
   -F "resume=@Sample_Resume.pdf" \
-  -H "Content-Type: multipart/form-data"
+  -H "Content-Type: multipart/form-data")
+
+echo "$UPLOAD_RESPONSE" | jq .
 
 curl -X POST http://localhost:5000/match \
   -H "Content-Type: application/json" \
-  -d '{
-    "resume_text": "Experienced in Python, Flask, and MongoDB. AWS Certified Developer.",
-    "job_desc": "Seeking full-stack developer with 3+ years of Python and AWS experience. Strong debugging skills required.",
+  -d "$(jq -n --arg text "$(echo "$UPLOAD_RESPONSE" | jq -r '.resume_text')" '{
+    "resume_text": $text,
+    "job_desc": "Machine Learning Engineer position requiring Python, TensorFlow, and data processing experience. Strong math background preferred.",
     "industry": "tech"
-  }'
+  }')"
+
+
+1. First Upload the Resume:
+UPLOAD_RESPONSE=$(curl -s -X POST http://localhost:5000/upload \
+  -F "resume=@Sample_Resume.pdf" \
+  -H "Content-Type: multipart/form-data")
+
+# Verify upload succeeded
+echo "$UPLOAD_RESPONSE" | jq .
+
+2. Test Against Different Job Descriptions:
+A) Cloud Engineer Position:
+curl -X POST http://localhost:5000/match \
+  -H "Content-Type: application/json" \
+  -d "$(jq -n --arg text "$(echo "$UPLOAD_RESPONSE" | jq -r '.resume_text')" '{
+    "resume_text": $text,
+    "job_desc": "Seeking a Cloud Engineer with 2+ years of Python and AWS experience. Must have deployed applications using serverless architectures and containerization. CI/CD pipeline experience required.",
+    "industry": "tech"
+  }')"
+
+  B) ML Engineer Position:
+  curl -X POST http://localhost:5000/match \
+  -H "Content-Type: application/json" \
+  -d "$(jq -n --arg text "$(echo "$UPLOAD_RESPONSE" | jq -r '.resume_text')" '{
+    "resume_text": $text,
+    "job_desc": "Machine Learning Engineer needed with TensorFlow/PyTorch experience. Strong Python, data processing (Pandas/NumPy), and model deployment skills required.",
+    "industry": "tech"
+  }')"
+
+  C) Full-Stack Developer Position:
+
+  curl -X POST http://localhost:5000/match \
+  -H "Content-Type: application/json" \
+  -d "$(jq -n --arg text "$(echo "$UPLOAD_RESPONSE" | jq -r '.resume_text')" '{
+    "resume_text": $text,
+    "job_desc": "Full-stack developer proficient in React, Node.js, and cloud deployment. API development experience required.",
+    "industry": "tech"
+  }')"
+
+  3. Key Things to Verify:
+Score Accuracy:
+
+Perfect matches should be ~95-100%
+
+Strong-but-not-perfect ~70-90%
+
+Partial matches ~40-60%
+
+Industry Analysis Quality:
+
+Should highlight your AWS experience when relevant
+
+Should note your Scikit-learn as ML experience
+
+Should recognize your React/Next.js as full-stack skills
+
+Missing Skills:
+
+Should intelligently identify true gaps (e.g., Kubernetes if not mentioned)
+
+Shouldn't flag skills you actually have
