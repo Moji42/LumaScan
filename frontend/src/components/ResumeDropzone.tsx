@@ -6,7 +6,6 @@ export default function ResumeDropzone() {
   const [resumeText, setResumeText] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
 
-  // Job description & match states always visible
   const [jobDesc, setJobDesc] = useState("");
   const [industry, setIndustry] = useState("");
   const [matching, setMatching] = useState(false);
@@ -107,13 +106,14 @@ export default function ResumeDropzone() {
     }
   };
 
+  const gradientBackground =
+    "bg-gradient-to-br from-blue-400 via-purple-500 to-indigo-600";
+
   return (
-    <div className="w-full max-w-3xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto text-black">
       {/* Drag & Drop Area */}
       <div
-        className={`p-10 border-2 border-dashed rounded-lg transition-colors ${
-          dragActive ? "border-indigo-500 bg-indigo-50" : "border-gray-300"
-        }`}
+        className={`${gradientBackground} p-10 border-2 border-transparent rounded-lg transition-colors cursor-pointer text-black`}
         onDragEnter={handleDrag}
         onDragOver={handleDrag}
         onDragLeave={handleDrag}
@@ -126,7 +126,7 @@ export default function ResumeDropzone() {
           onChange={handleChange}
           accept="application/pdf"
         />
-        <label htmlFor="file-upload" className="cursor-pointer text-gray-600">
+        <label htmlFor="file-upload" className="cursor-pointer">
           {uploading
             ? "Uploading..."
             : dragActive
@@ -137,23 +137,24 @@ export default function ResumeDropzone() {
 
       {/* Extracted Skills & Resume Text (only if uploaded) */}
       {resumeText && (
-        <div className="mt-6 text-left">
-          <h3 className="text-lg font-bold">Extracted Skills:</h3>
-          <ul className="list-disc pl-5">
+        <div
+          className={`${gradientBackground} mt-6 text-left p-4 rounded-lg text-black`}
+          style={{ whiteSpace: "pre-wrap", maxHeight: "16rem", overflowY: "auto" }}
+        >
+          <h3 className="text-lg font-bold mb-2">Extracted Skills:</h3>
+          <ul className="list-disc pl-5 mb-4">
             {skills.map((skill, idx) => (
               <li key={idx}>{skill}</li>
             ))}
           </ul>
 
-          <h3 className="mt-4 text-lg font-bold">Resume Text:</h3>
-          <pre className="whitespace-pre-wrap bg-gray-100 p-3 rounded max-h-64 overflow-y-auto">
-            {resumeText}
-          </pre>
+          <h3 className="text-lg font-bold mb-2">Resume Text:</h3>
+          <pre>{resumeText}</pre>
         </div>
       )}
 
       {/* Job Description & Industry Input (always visible) */}
-      <div className="mt-6 text-left">
+      <div className={`${gradientBackground} mt-6 text-left p-4 rounded-lg text-black`}>
         <label htmlFor="job-desc" className="block font-semibold mb-1">
           Job Description (paste text here):
         </label>
@@ -162,7 +163,7 @@ export default function ResumeDropzone() {
           rows={6}
           value={jobDesc}
           onChange={(e) => setJobDesc(e.target.value)}
-          className="w-full border rounded p-2"
+          className="w-full border rounded p-2 text-black"
           placeholder="Paste the job description to compare your resume against..."
         />
         <label htmlFor="industry" className="block font-semibold mt-4 mb-1">
@@ -173,13 +174,13 @@ export default function ResumeDropzone() {
           type="text"
           value={industry}
           onChange={(e) => setIndustry(e.target.value)}
-          className="w-full border rounded p-2"
+          className="w-full border rounded p-2 text-black"
           placeholder="e.g. Tech, Finance, Healthcare"
         />
         <button
           onClick={analyzeMatch}
           disabled={matching}
-          className="mt-4 bg-indigo-600 text-white px-6 py-2 rounded disabled:bg-gray-400"
+          className="mt-4 bg-black text-white px-6 py-2 rounded disabled:opacity-50"
         >
           {matching ? "Analyzing..." : "Analyze Match"}
         </button>
@@ -187,7 +188,10 @@ export default function ResumeDropzone() {
 
       {/* Match Analysis Results */}
       {matchResult && (
-        <div className="mt-6 p-4 border rounded bg-indigo-50 text-left max-h-96 overflow-y-auto">
+        <div
+          className={`${gradientBackground} mt-6 p-4 rounded-lg text-black max-h-96 overflow-y-auto`}
+          style={{ whiteSpace: "pre-wrap" }}
+        >
           <h3 className="text-xl font-bold mb-2">Match Analysis Results</h3>
           <p>
             <strong>Match Score:</strong> {matchResult.match_score}%
@@ -221,7 +225,7 @@ export default function ResumeDropzone() {
             )}
           </ul>
 
-          <p className="mt-2 whitespace-pre-wrap">
+          <p className="mt-2">
             <strong>Industry Analysis:</strong> {matchResult.industry_analysis}
           </p>
         </div>
