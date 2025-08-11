@@ -123,3 +123,26 @@ Missing Skills:
 Should intelligently identify true gaps (e.g., Kubernetes if not mentioned)
 
 Shouldn't flag skills you actually have
+
+# Test error handling
+curl -X POST http://localhost:5000/match \
+  -H "Content-Type: application/json" \
+  -d '{"resume_text": "", "job_desc": ""}'
+
+# Test junior boost
+curl -X POST http://localhost:5000/match \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resume_text": "Python AWS",
+    "job_desc": "Junior Developer (Python)",
+    "industry": "tech"
+  }'
+
+# Test skill matching
+curl -X POST http://localhost:5000/match \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resume_text": "TensorFlow.js",
+    "job_desc": "Needs TensorFlow",
+    "industry": "tech"
+  }'

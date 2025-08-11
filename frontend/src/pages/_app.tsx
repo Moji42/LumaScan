@@ -1,20 +1,9 @@
-// src/App.tsx
+// src/pages/_app.tsx
+import type { AppProps } from 'next/app';
+import '../styles/globals.css'; // Only if you have global styles
 
-import React from "react";
+function MyApp({ Component, pageProps }: AppProps) {
+  return <Component {...pageProps} />; // Just renders the page as-is
+}
 
-const App: React.FC = () => {
-  return (
-    <div style={{
-      display: "flex",
-      height: "100vh",
-      justifyContent: "center",
-      alignItems: "center",
-      fontSize: "3rem",
-      fontWeight: "bold"
-    }}>
-      LumaScan Frontend is running 
-    </div>
-  );
-};
-
-export default App;
+export default MyApp;
