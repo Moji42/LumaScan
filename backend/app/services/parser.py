@@ -1,3 +1,4 @@
+# backend/app/services/parser.py
 import fitz
 
 def parse_pdf_text(file):

@@ -12,6 +12,6 @@ def create_app():
     # Register blueprints here later
     @app.route("/health")
     def health_check():
-        return {"status": "Backend is running 🎉"}
+        return {"status": "Backend is running"}
 
     return app
