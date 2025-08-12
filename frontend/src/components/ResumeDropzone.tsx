@@ -106,14 +106,13 @@ export default function ResumeDropzone() {
     }
   };
 
-  const gradientBackground =
-    "bg-gradient-to-br from-blue-400 via-purple-500 to-indigo-600";
-
   return (
-    <div className="w-full max-w-3xl mx-auto text-black">
-      {/* Drag & Drop Area */}
+    <div className="w-full max-w-4xl mx-auto p-4 md:p-8 text-gray-900">
+      {/* File Upload */}
       <div
-        className={`${gradientBackground} p-10 border-2 border-transparent rounded-lg transition-colors cursor-pointer text-black`}
+        className={`border-4 border-dashed rounded-xl p-10 text-center transition-colors duration-300 ${
+          dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white"
+        } cursor-pointer shadow-sm`}
         onDragEnter={handleDrag}
         onDragOver={handleDrag}
         onDragLeave={handleDrag}
@@ -126,114 +125,121 @@ export default function ResumeDropzone() {
           onChange={handleChange}
           accept="application/pdf"
         />
-        <label htmlFor="file-upload" className="cursor-pointer">
+        <label htmlFor="file-upload" className="block text-lg font-medium">
           {uploading
             ? "Uploading..."
             : dragActive
-            ? "Drop your PDF here"
-            : "Drag & drop your resume here, or click to browse"}
+            ? "Drop your resume PDF here"
+            : "Drag & drop your resume PDF here, or click to upload"}
         </label>
       </div>
 
-      {/* Extracted Skills & Resume Text (only if uploaded) */}
+      {/* Resume Content */}
       {resumeText && (
-        <div
-          className={`${gradientBackground} mt-6 text-left p-4 rounded-lg text-black`}
-          style={{ whiteSpace: "pre-wrap", maxHeight: "16rem", overflowY: "auto" }}
-        >
-          <h3 className="text-lg font-bold mb-2">Extracted Skills:</h3>
-          <ul className="list-disc pl-5 mb-4">
+        <div className="mt-8 bg-white rounded-xl shadow-md p-6">
+          <h3 className="text-xl font-semibold mb-3">Extracted Skills</h3>
+          <div className="flex flex-wrap gap-2 mb-4">
             {skills.map((skill, idx) => (
-              <li key={idx}>{skill}</li>
+              <span
+                key={idx}
+                className="bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm"
+              >
+                {skill}
+              </span>
             ))}
-          </ul>
+          </div>
 
-          <h3 className="text-lg font-bold mb-2">Resume Text:</h3>
-          <pre>{resumeText}</pre>
+          <h3 className="text-xl font-semibold mb-3">Resume Text</h3>
+          <div className="bg-gray-50 p-3 rounded text-sm whitespace-pre-wrap max-h-64 overflow-y-auto border">
+            {resumeText}
+          </div>
         </div>
       )}
 
-      {/* Job Description & Industry Input (always visible) */}
-      <div className={`${gradientBackground} mt-6 text-left p-4 rounded-lg text-black`}>
-        <label htmlFor="job-desc" className="block font-semibold mb-1">
-          Job Description (paste text here):
+      {/* Job Description */}
+      <div className="mt-8 bg-white rounded-xl shadow-md p-6">
+        <h3 className="text-xl font-semibold mb-4">Job Matching</h3>
+
+        <label htmlFor="job-desc" className="block font-medium mb-1">
+          Job Description
         </label>
         <textarea
           id="job-desc"
-          rows={6}
+          rows={5}
           value={jobDesc}
           onChange={(e) => setJobDesc(e.target.value)}
-          className="w-full border rounded p-2 text-black"
-          placeholder="Paste the job description to compare your resume against..."
+          className="w-full border border-gray-300 rounded p-3 mb-4 text-sm"
+          placeholder="Paste the job description here..."
         />
-        <label htmlFor="industry" className="block font-semibold mt-4 mb-1">
-          Industry (optional):
+
+        <label htmlFor="industry" className="block font-medium mb-1">
+          Industry (optional)
         </label>
         <input
           id="industry"
           type="text"
           value={industry}
           onChange={(e) => setIndustry(e.target.value)}
-          className="w-full border rounded p-2 text-black"
+          className="w-full border border-gray-300 rounded p-3 mb-4 text-sm"
           placeholder="e.g. Tech, Finance, Healthcare"
         />
+
         <button
           onClick={analyzeMatch}
           disabled={matching}
-          className="mt-4 bg-black text-white px-6 py-2 rounded disabled:opacity-50"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded transition disabled:opacity-50"
         >
           {matching ? "Analyzing..." : "Analyze Match"}
         </button>
       </div>
 
-      {/* Match Analysis Results */}
+      {/* Results */}
       {matchResult && (
-        <div
-          className={`${gradientBackground} mt-6 p-4 rounded-lg text-black max-h-96 overflow-y-auto`}
-          style={{ whiteSpace: "pre-wrap" }}
-        >
-          <h3 className="text-xl font-bold mb-2">Match Analysis Results</h3>
-          <p>
+        <div className="mt-8 bg-white rounded-xl shadow-md p-6">
+          <h3 className="text-xl font-bold mb-4">Match Results</h3>
+
+          <p className="mb-2">
             <strong>Match Score:</strong> {matchResult.match_score}%
           </p>
-          <p>
+          <p className="mb-2">
             <strong>Experience Level:</strong> {matchResult.experience_level}
           </p>
-          <p className="mt-2">
-            <strong>Matched Skills:</strong>
-          </p>
-          <ul className="list-disc pl-5">
-            {matchResult.matched_skills.length > 0 ? (
-              matchResult.matched_skills.map((m: string, idx: number) => (
-                <li key={idx}>{m}</li>
-              ))
-            ) : (
-              <li>No matched skills found</li>
-            )}
-          </ul>
 
-          <p className="mt-2">
-            <strong>Missing Core Skills:</strong>
-          </p>
-          <ul className="list-disc pl-5">
-            {matchResult.missing_core_skills.length > 0 ? (
-              matchResult.missing_core_skills.map((m: string, idx: number) => (
-                <li key={idx}>{m}</li>
-              ))
-            ) : (
-              <li>No missing skills detected</li>
-            )}
-          </ul>
+          <div className="mt-4">
+            <h4 className="font-semibold">Matched Skills:</h4>
+            <ul className="list-disc list-inside mb-2">
+              {matchResult.matched_skills.length > 0 ? (
+                matchResult.matched_skills.map((s: string, i: number) => (
+                  <li key={i}>{s}</li>
+                ))
+              ) : (
+                <li>No matched skills found.</li>
+              )}
+            </ul>
 
-          <p className="mt-2">
-            <strong>Industry Analysis:</strong> {matchResult.industry_analysis}
-          </p>
+            <h4 className="font-semibold">Missing Core Skills:</h4>
+            <ul className="list-disc list-inside mb-2">
+              {matchResult.missing_core_skills.length > 0 ? (
+                matchResult.missing_core_skills.map((s: string, i: number) => (
+                  <li key={i}>{s}</li>
+                ))
+              ) : (
+                <li>No missing skills detected.</li>
+              )}
+            </ul>
+
+            <p className="mt-2">
+              <strong>Industry Analysis:</strong> {matchResult.industry_analysis}
+            </p>
+          </div>
         </div>
       )}
 
-      {/* Match Error */}
+      {/* Error */}
       {matchError && (
-        <div className="mt-6 text-red-600 font-semibold">Error: {matchError}</div>
+        <div className="mt-6 bg-red-100 border border-red-300 text-red-800 p-4 rounded">
+          <strong>Error:</strong> {matchError}
+        </div>
       )}
     </div>
   );
