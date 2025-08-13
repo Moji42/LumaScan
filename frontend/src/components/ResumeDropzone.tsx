@@ -110,9 +110,8 @@ export default function ResumeDropzone() {
     <div className="w-full max-w-4xl mx-auto p-4 md:p-8 text-gray-900">
       {/* File Upload */}
       <div
-        className={`border-4 border-dashed rounded-xl p-10 text-center transition-colors duration-300 ${
-          dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white"
-        } cursor-pointer shadow-sm`}
+        className={`border-4 border-dashed rounded-xl p-10 text-center transition-colors duration-300 ${dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white"
+          } cursor-pointer shadow-sm`}
         onDragEnter={handleDrag}
         onDragOver={handleDrag}
         onDragLeave={handleDrag}
@@ -129,8 +128,8 @@ export default function ResumeDropzone() {
           {uploading
             ? "Uploading..."
             : dragActive
-            ? "Drop your resume PDF here"
-            : "Drag & drop your resume PDF here, or click to upload"}
+              ? "Drop your resume PDF here"
+              : "Drag & drop your resume PDF here, or click to upload"}
         </label>
       </div>
 
@@ -198,40 +197,123 @@ export default function ResumeDropzone() {
         <div className="mt-8 bg-white rounded-xl shadow-md p-6">
           <h3 className="text-xl font-bold mb-4">Match Results</h3>
 
-          <p className="mb-2">
-            <strong>Match Score:</strong> {matchResult.match_score}%
-          </p>
-          <p className="mb-2">
-            <strong>Experience Level:</strong> {matchResult.experience_level}
-          </p>
-
-          <div className="mt-4">
-            <h4 className="font-semibold">Matched Skills:</h4>
-            <ul className="list-disc list-inside mb-2">
-              {matchResult.matched_skills.length > 0 ? (
-                matchResult.matched_skills.map((s: string, i: number) => (
-                  <li key={i}>{s}</li>
-                ))
-              ) : (
-                <li>No matched skills found.</li>
-              )}
-            </ul>
-
-            <h4 className="font-semibold">Missing Core Skills:</h4>
-            <ul className="list-disc list-inside mb-2">
-              {matchResult.missing_core_skills.length > 0 ? (
-                matchResult.missing_core_skills.map((s: string, i: number) => (
-                  <li key={i}>{s}</li>
-                ))
-              ) : (
-                <li>No missing skills detected.</li>
-              )}
-            </ul>
-
-            <p className="mt-2">
-              <strong>Industry Analysis:</strong> {matchResult.industry_analysis}
-            </p>
+          {/* Main Match Score */}
+          <div className="mb-6 p-4 bg-indigo-50 rounded-lg">
+            <h4 className="text-lg font-semibold text-indigo-800 mb-2">Overall Match Score</h4>
+            <div className="flex items-center">
+              <div className="w-full bg-gray-200 rounded-full h-4 mr-4">
+                <div
+                  className="bg-indigo-600 h-4 rounded-full"
+                  style={{ width: `${matchResult.match_score}%` }}
+                ></div>
+              </div>
+              <span className="text-xl font-bold text-indigo-700">
+                {matchResult.match_score}%
+              </span>
+            </div>
           </div>
+
+          {/* Experience Level */}
+          <div className="mb-6">
+            <h4 className="text-lg font-semibold mb-2">Experience Level</h4>
+            <div className={`px-4 py-2 rounded-lg inline-block ${matchResult.experience_level === 'senior'
+                ? 'bg-purple-100 text-purple-800'
+                : 'bg-blue-100 text-blue-800'
+              }`}>
+              {matchResult.experience_level}
+            </div>
+          </div>
+
+          {/* Score Breakdown */}
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h4 className="font-semibold mb-2">Cosine Similarity Scores</h4>
+              <div className="space-y-2">
+                <div>
+                  <span className="text-sm text-gray-600">Overall Text Similarity: </span>
+                  <span className="font-medium">
+                    {(matchResult.score_breakdown.cosine_similarity.overall * 100).toFixed(1)}%
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-600">Skills Similarity: </span>
+                  <span className="font-medium">
+                    {(matchResult.score_breakdown.cosine_similarity.skills * 100).toFixed(1)}%
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-600">Contribution to Score: </span>
+                  <span className="font-medium">
+                    {matchResult.score_breakdown.cosine_similarity.contribution}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h4 className="font-semibold mb-2">Exact Matches</h4>
+              <div className="space-y-2">
+                <div>
+                  <span className="text-sm text-gray-600">Exact Skill Matches: </span>
+                  <span className="font-medium">
+                    {matchResult.score_breakdown.exact_matches}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-600">Contribution to Score: </span>
+                  <span className="font-medium">
+                    {100 - matchResult.score_breakdown.cosine_similarity.contribution}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Matched Skills */}
+          <div className="mb-6">
+            <h4 className="text-lg font-semibold mb-2">Matched Skills</h4>
+            {matchResult.matched_skills.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {matchResult.matched_skills.map((s: string, i: number) => (
+                  <div key={i} className="bg-green-50 text-green-800 px-3 py-1 rounded-full text-sm">
+                    {s}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">No matched skills found.</p>
+            )}
+          </div>
+
+          {/* Missing Core Skills */}
+          <div className="mb-6">
+            <h4 className="text-lg font-semibold mb-2">Missing Core Skills</h4>
+            {matchResult.missing_core_skills.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {matchResult.missing_core_skills.map((s: string, i: number) => (
+                  <div key={i} className="bg-red-50 text-red-800 px-3 py-1 rounded-full text-sm">
+                    {s}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">No missing skills detected.</p>
+            )}
+          </div>
+
+          {/* Industry Analysis */}
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+            <h4 className="font-semibold mb-2">Industry Analysis</h4>
+            <p className="text-gray-700">{matchResult.industry_analysis}</p>
+          </div>
+
+          {/* Technical Details */}
+          <details className="mt-4 text-sm text-gray-500">
+            <summary className="cursor-pointer">Technical Details</summary>
+            <pre className="mt-2 p-2 bg-gray-100 rounded overflow-x-auto">
+              {JSON.stringify(matchResult, null, 2)}
+            </pre>
+          </details>
         </div>
       )}
 

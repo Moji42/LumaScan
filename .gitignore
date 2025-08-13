@@ -49,3 +49,4 @@ Thumbs.db
 # -------------------------------
 *.PDF
 storage.txt
+frontend/.env.local

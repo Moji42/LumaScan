@@ -1,9 +1,26 @@
 // src/pages/_app.tsx
 import type { AppProps } from 'next/app';
-import '../styles/globals.css'; // Only if you have global styles
+import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
+import { SessionContextProvider, Session } from '@supabase/auth-helpers-react';
+import { useState } from 'react';
+import '../styles/globals.css';
 
-function MyApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />; // Just renders the page as-is
+function MyApp({
+  Component,
+  pageProps,
+}: AppProps<{
+  initialSession: Session;
+}>) {
+  const [supabaseClient] = useState(() => createPagesBrowserClient());
+
+  return (
+    <SessionContextProvider
+      supabaseClient={supabaseClient}
+      initialSession={pageProps.initialSession}
+    >
+      <Component {...supabaseClient} {...pageProps} />
+    </SessionContextProvider>
+  );
 }
 
 export default MyApp;

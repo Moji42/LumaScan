@@ -1,5 +1,8 @@
 {
   "dependencies": {
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/auth-helpers-react": "^0.5.0",
+    "@supabase/supabase-js": "^2.55.0",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
     "react-dropzone": "^14.3.8",
@@ -7,6 +10,7 @@
     "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
-    "@types/react-dropzone": "^4.2.2"
+    "@types/react-dropzone": "^4.2.2",
+    "typescript": "^5.9.2"
   }
 }
