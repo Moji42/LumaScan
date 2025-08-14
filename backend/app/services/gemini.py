@@ -24,3 +24,33 @@ def extract_skills(text, prompt_prefix="Extract all relevant technical and soft 
     skills = response.text.strip().replace("\n", "").split(",")
     # Clean up the skills list
     return [s.strip().lower() for s in skills if s.strip()]
+
+def rewrite_resume_gemini(resume_text, job_description):
+    prompt = f"""
+    Rewrite the following resume so that it is more tailored to this job description.
+
+    Resume:
+    {resume_text}
+
+    Job Description:
+    {job_description}
+
+    Return a polished and well-formatted resume in plain text.
+    """
+    response = model.generate_content(prompt)
+    return response.text.strip()
+
+def generate_cover_letter_gemini(resume_text, job_description):
+    prompt = f"""
+    Using the resume and job description below, write a professional cover letter targeted to this role.
+    
+    Resume:
+    {resume_text}
+
+    Job Description:
+    {job_description}
+
+    The cover letter should be enthusiastic, tailored, and highlight relevant skills. Use a clear structure with greeting, intro, body, and closing.
+    """
+    response = model.generate_content(prompt)
+    return response.text.strip()

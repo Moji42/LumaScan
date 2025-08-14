@@ -16,6 +16,7 @@
     "@types/react": "^18.x",
     "@types/react-dropzone": "^4.2.2",
     "next": "15.4.6",
+    "punycode": "^2.3.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-dropzone": "^14.3.8"
