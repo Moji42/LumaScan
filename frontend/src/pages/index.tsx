@@ -1,25 +1,31 @@
 // src/pages/index.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
 import ResumeDropzone from '../components/ResumeDropzone';
+import Auth from '../components/Auth';
 
 export default function Home() {
   const supabase = useSupabaseClient();
-  const [session, setSession] = useState(null);
+  const session = useSession();
+  const [loading, setLoading] = useState(true);
 
-  const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github', // or 'google', 'twitter', etc.
-    });
-    if (error) console.log('Error: ', error);
-  };
+  useEffect(() => {
+    setLoading(false);
+  }, [session]);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) console.log('Error: ', error);
-    setSession(null);
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!session) {
+    return <Auth />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -35,21 +41,12 @@ export default function Home() {
             <h1 className="text-2xl font-bold text-indigo-600">Lumascan</h1>
           </div>
           <div>
-            {!session ? (
-              <button
-                onClick={handleLogin}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-              >
-                Sign In
-              </button>
-            ) : (
-              <button
-                onClick={handleLogout}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md text-sm font-medium"
-              >
-                Sign Out
-              </button>
-            )}
+            <button
+              onClick={handleLogout}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md text-sm font-medium"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </header>
