@@ -1,16 +1,48 @@
-import React, { useState, DragEvent, ChangeEvent } from "react";
+import React, { useState, DragEvent, ChangeEvent, useEffect } from "react";
+import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
 
-export default function ResumeDropzone() {
+interface MatchResult {
+  match_score: number;
+  matched_skills: string[];
+  missing_core_skills: string[];
+  industry_analysis: string;
+  experience_level: string;
+  score_breakdown: {
+    exact_matches: number;
+    cosine_similarity: {
+      overall: number;
+      skills: number;
+      contribution: number;
+    };
+  };
+}
+
+interface ResumeData {
+  resume_text: string;
+  skills: string[];
+  job_title?: string;
+}
+
+export default function ResumeDropzone({ initialResume }: { initialResume?: ResumeData }) {
+  const supabase = useSupabaseClient();
+  const user = useUser();
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [resumeText, setResumeText] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
-
   const [jobDesc, setJobDesc] = useState("");
   const [industry, setIndustry] = useState("");
   const [matching, setMatching] = useState(false);
-  const [matchResult, setMatchResult] = useState<any>(null);
+  const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
   const [matchError, setMatchError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    if (initialResume) {
+      setResumeText(initialResume.resume_text);
+      setSkills(initialResume.skills);
+    }
+  }, [initialResume]);
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -26,6 +58,7 @@ export default function ResumeDropzone() {
     setUploading(true);
     setMatchResult(null);
     setMatchError(null);
+    setSaveSuccess(false);
 
     try {
       const res = await fetch("http://localhost:5000/api/upload", {
@@ -33,16 +66,44 @@ export default function ResumeDropzone() {
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Upload failed");
+      }
 
       const data = await res.json();
       setResumeText(data.resume_text || "");
       setSkills(data.skills || []);
-    } catch (err) {
+
+      if (user) {
+        await saveResume(data.resume_text, data.skills);
+      }
+    } catch (err: any) {
       console.error(err);
-      alert("Error uploading file");
+      setMatchError(err.message || "Error uploading file");
     } finally {
       setUploading(false);
+    }
+  };
+
+  const saveResume = async (text: string, skills: string[]) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase.from('resumes').upsert({
+        user_id: user.id,
+        resume_text: text,
+        skills: skills,
+        job_title: jobDesc 
+          ? `Resume for ${jobDesc.substring(0, 30)}${jobDesc.length > 30 ? '...' : ''}`
+          : "Untitled Resume"
+      });
+      
+      if (error) throw error;
+      setSaveSuccess(true);
+    } catch (err: any) {
+      console.error('Error saving resume:', err);
+      setMatchError(err.message || "Failed to save resume");
     }
   };
 
@@ -64,22 +125,25 @@ export default function ResumeDropzone() {
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    handleFiles(e.target.files);
+    if (e.target.files) {
+      handleFiles(e.target.files);
+    }
   };
 
   const analyzeMatch = async () => {
     if (!resumeText) {
-      alert("Please upload a resume first.");
+      setMatchError("Please upload a resume first.");
       return;
     }
     if (!jobDesc.trim()) {
-      alert("Please enter a job description.");
+      setMatchError("Please enter a job description.");
       return;
     }
 
     setMatching(true);
     setMatchError(null);
     setMatchResult(null);
+    setSaveSuccess(false);
 
     try {
       const res = await fetch("http://localhost:5000/api/match", {
@@ -99,8 +163,13 @@ export default function ResumeDropzone() {
 
       const data = await res.json();
       setMatchResult(data);
+
+      if (user) {
+        await saveResume(resumeText, skills);
+      }
     } catch (err: any) {
-      setMatchError(err.message || "Unknown error");
+      console.error(err);
+      setMatchError(err.message || "Unknown error during analysis");
     } finally {
       setMatching(false);
     }
@@ -110,8 +179,9 @@ export default function ResumeDropzone() {
     <div className="w-full max-w-4xl mx-auto p-4 md:p-8 text-gray-900">
       {/* File Upload */}
       <div
-        className={`border-4 border-dashed rounded-xl p-10 text-center transition-colors duration-300 ${dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white"
-          } cursor-pointer shadow-sm`}
+        className={`border-4 border-dashed rounded-xl p-10 text-center transition-colors duration-300 ${
+          dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white"
+        } cursor-pointer shadow-sm`}
         onDragEnter={handleDrag}
         onDragOver={handleDrag}
         onDragLeave={handleDrag}
@@ -132,6 +202,18 @@ export default function ResumeDropzone() {
               : "Drag & drop your resume PDF here, or click to upload"}
         </label>
       </div>
+
+      {saveSuccess && (
+        <div className="mt-4 p-3 bg-green-100 text-green-800 rounded-md">
+          Resume saved to your profile!
+        </div>
+      )}
+
+      {matchError && (
+        <div className="mt-4 p-3 bg-red-100 text-red-800 rounded-md">
+          {matchError}
+        </div>
+      )}
 
       {/* Resume Content */}
       {resumeText && (
@@ -183,144 +265,101 @@ export default function ResumeDropzone() {
           placeholder="e.g. Tech, Finance, Healthcare"
         />
 
-        <button
-          onClick={analyzeMatch}
-          disabled={matching}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded transition disabled:opacity-50"
-        >
-          {matching ? "Analyzing..." : "Analyze Match"}
-        </button>
+        <div className="flex justify-between items-center">
+          <button
+            onClick={analyzeMatch}
+            disabled={matching}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded transition disabled:opacity-50"
+          >
+            {matching ? "Analyzing..." : "Analyze Match"}
+          </button>
+          {!user && (
+            <p className="text-sm text-gray-500">
+              Sign in to save your resumes
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Results */}
       {matchResult && (
         <div className="mt-8 bg-white rounded-xl shadow-md p-6">
-          <h3 className="text-xl font-bold mb-4">Match Results</h3>
-
-          {/* Main Match Score */}
-          <div className="mb-6 p-4 bg-indigo-50 rounded-lg">
-            <h4 className="text-lg font-semibold text-indigo-800 mb-2">Overall Match Score</h4>
-            <div className="flex items-center">
-              <div className="w-full bg-gray-200 rounded-full h-4 mr-4">
-                <div
-                  className="bg-indigo-600 h-4 rounded-full"
-                  style={{ width: `${matchResult.match_score}%` }}
-                ></div>
-              </div>
-              <span className="text-xl font-bold text-indigo-700">
+          <h3 className="text-2xl font-bold mb-4">Match Analysis Results</h3>
+          
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-lg font-medium">Overall Match Score</h4>
+              <span className={`text-2xl font-bold ${
+                matchResult.match_score > 75 ? 'text-green-600' : 
+                matchResult.match_score > 50 ? 'text-yellow-600' : 'text-red-600'
+              }`}>
                 {matchResult.match_score}%
               </span>
             </div>
-          </div>
-
-          {/* Experience Level */}
-          <div className="mb-6">
-            <h4 className="text-lg font-semibold mb-2">Experience Level</h4>
-            <div className={`px-4 py-2 rounded-lg inline-block ${matchResult.experience_level === 'senior'
-                ? 'bg-purple-100 text-purple-800'
-                : 'bg-blue-100 text-blue-800'
-              }`}>
-              {matchResult.experience_level}
+            <div className="w-full bg-gray-200 rounded-full h-4">
+              <div 
+                className={`h-4 rounded-full ${
+                  matchResult.match_score > 75 ? 'bg-green-500' : 
+                  matchResult.match_score > 50 ? 'bg-yellow-500' : 'bg-red-500'
+                }`}
+                style={{ width: `${matchResult.match_score}%` }}
+              ></div>
             </div>
           </div>
 
-          {/* Score Breakdown */}
-          <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-semibold mb-2">Cosine Similarity Scores</h4>
-              <div className="space-y-2">
-                <div>
-                  <span className="text-sm text-gray-600">Overall Text Similarity: </span>
-                  <span className="font-medium">
-                    {(matchResult.score_breakdown.cosine_similarity.overall * 100).toFixed(1)}%
-                  </span>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-600">Skills Similarity: </span>
-                  <span className="font-medium">
-                    {(matchResult.score_breakdown.cosine_similarity.skills * 100).toFixed(1)}%
-                  </span>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-600">Contribution to Score: </span>
-                  <span className="font-medium">
-                    {matchResult.score_breakdown.cosine_similarity.contribution}%
-                  </span>
-                </div>
-              </div>
+          {matchResult.experience_level && (
+            <div className="mb-6">
+              <h4 className="text-lg font-medium mb-2">Experience Level</h4>
+              <p className="capitalize">{matchResult.experience_level}</p>
             </div>
+          )}
 
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-semibold mb-2">Exact Matches</h4>
-              <div className="space-y-2">
-                <div>
-                  <span className="text-sm text-gray-600">Exact Skill Matches: </span>
-                  <span className="font-medium">
-                    {matchResult.score_breakdown.exact_matches}
+          {matchResult.matched_skills?.length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-lg font-medium mb-2">Matched Skills ({matchResult.matched_skills.length})</h4>
+              <div className="flex flex-wrap gap-2">
+                {matchResult.matched_skills.map((skill, idx) => (
+                  <span key={idx} className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                    {skill}
                   </span>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-600">Contribution to Score: </span>
-                  <span className="font-medium">
-                    {100 - matchResult.score_breakdown.cosine_similarity.contribution}%
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Matched Skills */}
-          <div className="mb-6">
-            <h4 className="text-lg font-semibold mb-2">Matched Skills</h4>
-            {matchResult.matched_skills.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                {matchResult.matched_skills.map((s: string, i: number) => (
-                  <div key={i} className="bg-green-50 text-green-800 px-3 py-1 rounded-full text-sm">
-                    {s}
-                  </div>
                 ))}
               </div>
-            ) : (
-              <p className="text-gray-500">No matched skills found.</p>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Missing Core Skills */}
-          <div className="mb-6">
-            <h4 className="text-lg font-semibold mb-2">Missing Core Skills</h4>
-            {matchResult.missing_core_skills.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                {matchResult.missing_core_skills.map((s: string, i: number) => (
-                  <div key={i} className="bg-red-50 text-red-800 px-3 py-1 rounded-full text-sm">
-                    {s}
-                  </div>
+          {matchResult.missing_core_skills?.length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-lg font-medium mb-2">Missing Core Skills ({matchResult.missing_core_skills.length})</h4>
+              <div className="flex flex-wrap gap-2">
+                {matchResult.missing_core_skills.map((skill, idx) => (
+                  <span key={idx} className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
+                    {skill}
+                  </span>
                 ))}
               </div>
-            ) : (
-              <p className="text-gray-500">No missing skills detected.</p>
-            )}
+            </div>
+          )}
+
+          {matchResult.industry_analysis && (
+            <div className="mb-6">
+              <h4 className="text-lg font-medium mb-2">Industry Analysis</h4>
+              <p className="whitespace-pre-wrap">{matchResult.industry_analysis}</p>
+            </div>
+          )}
+
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="text-lg font-medium mb-2">Score Breakdown</h4>
+            <ul className="space-y-2">
+              <li className="flex justify-between">
+                <span>Exact Skill Matches:</span>
+                <span>{matchResult.score_breakdown?.exact_matches || 0}</span>
+              </li>
+              <li className="flex justify-between">
+                <span>Cosine Similarity:</span>
+                <span>{matchResult.score_breakdown?.cosine_similarity?.overall?.toFixed(4) || 0}</span>
+              </li>
+            </ul>
           </div>
-
-          {/* Industry Analysis */}
-          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-            <h4 className="font-semibold mb-2">Industry Analysis</h4>
-            <p className="text-gray-700">{matchResult.industry_analysis}</p>
-          </div>
-
-          {/* Technical Details */}
-          <details className="mt-4 text-sm text-gray-500">
-            <summary className="cursor-pointer">Technical Details</summary>
-            <pre className="mt-2 p-2 bg-gray-100 rounded overflow-x-auto">
-              {JSON.stringify(matchResult, null, 2)}
-            </pre>
-          </details>
-        </div>
-      )}
-
-      {/* Error */}
-      {matchError && (
-        <div className="mt-6 bg-red-100 border border-red-300 text-red-800 p-4 rounded">
-          <strong>Error:</strong> {matchError}
         </div>
       )}
     </div>

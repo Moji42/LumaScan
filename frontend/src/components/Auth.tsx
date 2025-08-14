@@ -1,4 +1,3 @@
-// src/components/Auth.tsx
 import { useState } from 'react';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { AuthError } from '@supabase/supabase-js';
@@ -8,7 +7,11 @@ type AuthMessage = {
   content: string;
 };
 
-export default function Auth() {
+interface AuthProps {
+  onClose?: () => void;
+}
+
+export default function Auth({ onClose }: AuthProps) {
   const supabase = useSupabaseClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,6 +46,7 @@ export default function Auth() {
           password,
         });
         if (error) throw error;
+        if (onClose) onClose();
       }
     } catch (error) {
       const authError = error as AuthError;
@@ -103,7 +107,19 @@ export default function Auth() {
   };
 
   return (
-    <div className="max-w-sm mx-auto my-8 p-6 bg-white rounded-lg shadow-md">
+    <div className="max-w-sm mx-auto my-8 p-6 bg-white rounded-lg shadow-md relative">
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          aria-label="Close authentication modal"
+        >
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
+
       <h2 className="text-2xl font-bold text-center mb-6">
         {isSignUp ? 'Sign Up' : 'Sign In'}
       </h2>
@@ -132,8 +148,9 @@ export default function Auth() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 required
+                autoComplete="email"
               />
             </div>
             <div>
@@ -145,15 +162,16 @@ export default function Auth() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 required
                 minLength={6}
+                autoComplete={isSignUp ? "new-password" : "current-password"}
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+              className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               {loading
                 ? 'Loading...'
@@ -167,7 +185,8 @@ export default function Auth() {
             <div className="mt-2 text-center">
               <button
                 onClick={() => setShowReset(true)}
-                className="text-indigo-600 hover:text-indigo-800 text-sm"
+                className="text-indigo-600 hover:text-indigo-800 text-sm focus:outline-none"
+                type="button"
               >
                 Forgot password?
               </button>
@@ -189,7 +208,7 @@ export default function Auth() {
                 type="button"
                 onClick={() => handleOAuthLogin('github')}
                 disabled={loading}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path
@@ -204,7 +223,7 @@ export default function Auth() {
                 type="button"
                 onClick={() => handleOAuthLogin('google')}
                 disabled={loading}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
@@ -232,7 +251,8 @@ export default function Auth() {
           <div className="mt-4 text-center">
             <button
               onClick={() => setIsSignUp(!isSignUp)}
-              className="text-indigo-600 hover:text-indigo-800 text-sm"
+              className="text-indigo-600 hover:text-indigo-800 text-sm focus:outline-none"
+              type="button"
             >
               {isSignUp
                 ? 'Already have an account? Sign In'
@@ -251,21 +271,22 @@ export default function Auth() {
               type="email"
               value={resetEmail}
               onChange={(e) => setResetEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               required
+              autoComplete="email"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             {loading ? 'Sending...' : 'Send Reset Link'}
           </button>
           <button
             type="button"
             onClick={() => setShowReset(false)}
-            className="w-full text-gray-600 py-2 px-4 rounded-md hover:text-gray-800"
+            className="w-full text-gray-600 py-2 px-4 rounded-md hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             Back to Sign In
           </button>
