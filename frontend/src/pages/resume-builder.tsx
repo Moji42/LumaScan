@@ -69,7 +69,7 @@ function Onboarding({ onProfile }: { onProfile: (d: ResumeEditorData) => void })
     const formData = new FormData();
     formData.append("resume", file);
     try {
-      const res = await fetch("`${API}/api/upload`", { method: "POST", body: formData });
+      const res = await fetch(`${API}/api/upload`, { method: "POST", body: formData });
       if (!res.ok) throw new Error((await res.json()).error || "Upload failed");
       const data = await res.json();
       if (!data.structured_data) throw new Error("Could not parse resume structure.");
@@ -212,7 +212,7 @@ export default function ResumeBuilderPage() {
   const renderInitialPdf = async (data: ResumeEditorData) => {
     setMasterPdfLoading(true);
     try {
-      const res = await fetch("`${API}/api/resume/render`", {
+      const res = await fetch(`${API}/api/resume/render`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data }),

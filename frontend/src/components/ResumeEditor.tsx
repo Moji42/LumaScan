@@ -170,7 +170,7 @@ export default function ResumeEditor({ initialData, initialPdfB64, pdfName, onDo
     setRendering(true);
     setRenderError(null);
     try {
-      const res = await fetch("`${API}/api/resume/render`", {
+      const res = await fetch(`${API}/api/resume/render`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data: d }),

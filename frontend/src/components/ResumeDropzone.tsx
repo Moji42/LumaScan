@@ -228,7 +228,7 @@ export default function ResumeDropzone({ initialResume }: { initialResume?: Resu
     const formData = new FormData();
     formData.append("resume", file);
     try {
-      const res = await fetch("`${API}/api/upload`", { method: "POST", body: formData });
+      const res = await fetch(`${API}/api/upload`, { method: "POST", body: formData });
       if (!res.ok) throw new Error((await res.json()).error || "Upload failed");
       const data = await res.json();
       setResumeText(data.resume_text || "");
@@ -272,7 +272,7 @@ export default function ResumeDropzone({ initialResume }: { initialResume?: Resu
     setResult(null);
 
     try {
-      const res = await fetch("`${API}/api/resume/generate`", {
+      const res = await fetch(`${API}/api/resume/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
