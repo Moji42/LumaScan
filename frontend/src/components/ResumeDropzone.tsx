@@ -535,7 +535,7 @@ export default function ResumeDropzone({ initialResume }: { initialResume?: Resu
 
         <div className="flex flex-wrap gap-3 items-center">
           <button
-            onClick={runPipeline}
+            onClick={() => runPipeline()}
             disabled={!canRun}
             className="inline-flex items-center gap-2 text-white text-sm font-semibold px-5 py-2.5 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:opacity-90 shadow-sm"
             style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
