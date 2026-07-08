@@ -18,6 +18,7 @@ reportlab
 numpy
 pandas
 scikit-learn
+sentence-transformers
 
 # PDF Parsing
 PyMuPDF
