@@ -1,7 +1,7 @@
-# backend/app/routes/upload.py
-from flask import Blueprint, request, jsonify 
+from flask import Blueprint, request, jsonify
 from app.services.parser import parse_pdf_text
 from app.services.gemini import extract_skills
+from app.services.resume_parser import parse_resume_to_structure
 
 upload_bp = Blueprint('upload', __name__)
 
@@ -9,14 +9,16 @@ upload_bp = Blueprint('upload', __name__)
 def upload_resume():
     if 'resume' not in request.files:
         return jsonify({"error": "No resume uploaded"}), 400
-    
+
     file = request.files['resume']
     try:
         text = parse_pdf_text(file)
-        skills = extract_skills(text)  # Extract skills from the resume text
+        skills = extract_skills(text)
+        structured_data = parse_resume_to_structure(text)
         return jsonify({
             "resume_text": text,
-            "skills": skills  # Include skills in the response
+            "skills": skills,
+            "structured_data": structured_data,
         }), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500 
+        return jsonify({"error": str(e)}), 500

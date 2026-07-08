@@ -1,4 +1,4 @@
-from app.services.gemini import model
+from app.services.gemini import generate_content
 from typing import List, Dict
 import re
 import json
@@ -53,20 +53,20 @@ def generate_analysis_prompt(resume_text: str, job_desc: str, industry: str = No
     1. Required experience level ({exp_level})
     2. Core technical skills
     3. Industry expectations ({industry})
-    
+
+    IMPORTANT: If the resume starts with "ADDITIONAL SKILLS:", treat every skill listed there as confirmed skills the candidate has. They must appear in exact_matches if required by the job, NOT in missing_core.
+
     {level_context}
     {industry_context}
-    
-    Resume Excerpt:
-    {resume_text[:2000]}
-    
+
+    Resume:
+    {resume_text[:3500]}
+
     Job Description:
     {job_desc[:2000]}
-    
-    Return JSON with:
-    - exact_matches: [{{"job_skill": str, "resume_skill": str}}]
-    - missing_core: [skills]
-    - industry_analysis: str
+
+    Return JSON only (no markdown):
+    {{"exact_matches": [{{"job_skill": str, "resume_skill": str}}], "missing_core": [str], "industry_analysis": str}}
     """
 
 def compare_resume_and_job(resume_text: str, job_desc: str, industry: str = None) -> Dict:
@@ -113,17 +113,17 @@ def compare_resume_and_job(resume_text: str, job_desc: str, industry: str = None
     try:
         # Step 1: Get structured analysis from Gemini
         prompt = generate_analysis_prompt(resume_text, job_desc, industry)
-        response = model.generate_content(prompt)
-        
-        # Step 2: Parse Gemini response with robust error handling
+        response_text = generate_content(prompt)
+
+        # Step 2: Parse response with robust error handling
         try:
-            results = json.loads(response.text)
+            results = json.loads(response_text)
         except json.JSONDecodeError:
             # Fallback parsing if response isn't clean JSON
             try:
-                start = max(response.text.find('{'), 0)
-                end = max(response.text.rfind('}') + 1, 1)
-                results = json.loads(response.text[start:end])
+                start = max(response_text.find('{'), 0)
+                end = max(response_text.rfind('}') + 1, 1)
+                results = json.loads(response_text[start:end])
             except:
                 results = {
                     "exact_matches": [],

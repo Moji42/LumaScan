@@ -1,6 +1,7 @@
 # Web Framework
 Flask
 flask-cors
+gunicorn
 
 # Environment & API Handling
 python-dotenv
@@ -8,13 +9,15 @@ requests
 
 # AI + Embeddings
 openai
+groq
+
+# PDF Generation
+reportlab
 
 # Data Science + ML
 numpy
 pandas
 scikit-learn
-scikit-surprise
 
-# Misc Tools
-tqdm       # progress bars
-PyMuPDF    # PDF parsing (you can also use pdfplumber instead) pyton
+# PDF Parsing
+PyMuPDF
